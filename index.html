@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0e5a6b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Roster Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#fbf8f3;--card:#fff;--ink:#1b2a3a;--muted:#6b7a8a;--line:#ebe4d8;
+--brand:#0e5a6b;--brand2:#2a8fa0;--soft:#e3f1f3;--accent:#f08a4b;--accent-ink:#b9501a;--accent-soft:#fff1e6;
+--ok-bg:#e4f4e9;--ok-ink:#1d5a35;--ok-line:#b9e0c6;--no-bg:#fdeceb;--no-ink:#9b3a32;--no-line:#f6c9c5;--warn-bg:#fdf0d3;--warn-ink:#7a5000;
+--head:"Fraunces",Georgia,serif;--body:"DM Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;--r:18px;
+--shadow:0 1px 2px rgba(27,42,58,.06),0 8px 24px rgba(27,42,58,.06)}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);line-height:1.45}
+[hidden]{display:none!important}
+h1,h2,h3{font-family:var(--head);font-weight:600;margin:0}
+.page{max-width:1180px;margin:0 auto;padding:16px 16px 40px}
+.h{font-size:22px;margin:22px 4px 10px}
+/* top bar and tabs */
+.top{position:sticky;top:0;z-index:20;background:rgba(251,248,243,.94);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top)}
+.topin{max-width:1180px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:14px}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--head);font-weight:600;font-size:20px;color:var(--brand);margin-right:auto}
+.logo{width:34px;height:34px;border-radius:11px;background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;display:grid;place-items:center}
+.logo svg{width:19px;height:19px}
+.tabs{display:flex;gap:6px}
+.tab{display:flex;align-items:center;gap:8px;padding:9px 16px;border-radius:999px;color:var(--muted);text-decoration:none;font-weight:700;font-size:15px}
+.tab svg,.iconbtn svg{width:20px;height:20px}
+.tab[aria-current=page]{background:var(--brand);color:#fff}
+.iconbtn{width:42px;height:42px;border-radius:12px;border:1.5px solid var(--line);background:#fff;color:var(--brand);display:grid;place-items:center;cursor:pointer}
+@media(max-width:760px){
+  .page{padding-bottom:96px}
+  .tabs{position:fixed;left:0;right:0;bottom:0;z-index:30;background:#fff;border-top:1px solid var(--line);padding:6px 8px calc(6px + env(safe-area-inset-bottom));justify-content:space-around}
+  .tab{flex:1;flex-direction:column;gap:2px;font-size:11px;padding:6px 4px;border-radius:12px;justify-content:center}
+}
+/* today */
+.hero{position:relative;overflow:hidden;background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;border-radius:26px;padding:22px 26px;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:12px 28px;box-shadow:var(--shadow)}
+.hero::after{content:"";position:absolute;right:-70px;top:-70px;width:240px;height:240px;border-radius:50%;background:rgba(255,255,255,.09)}
+.hero>*{position:relative;z-index:1}
+.hello{opacity:.85;font-size:15px;min-height:22px}
+.clock{font-family:var(--head);font-weight:600;font-size:clamp(54px,10vw,112px);line-height:1;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.clock small{font-size:.36em;opacity:.7;margin-left:.2em;font-weight:500}
+.co{opacity:.9;font-weight:500;margin-top:4px}
+.datebox{text-align:right}
+.dow{font-family:var(--head);font-size:clamp(28px,5vw,52px);font-weight:600;line-height:1.05}
+.dmy{opacity:.9;font-size:clamp(16px,2.4vw,24px)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:12px;margin:14px 0 4px}
+.stat{background:var(--card);border-radius:var(--r);padding:14px 16px;box-shadow:var(--shadow)}
+.stat b{display:block;font-family:var(--head);font-size:clamp(32px,5vw,46px);line-height:1.05}
+.stat span{color:var(--muted);font-size:14px}
+.stat.main{background:var(--accent-soft)}.stat.main b{color:var(--accent-ink)}
+.types{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.tcard{border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:9px;border:1.5px solid var(--line);background:var(--card);box-shadow:var(--shadow)}
+.tcard h3{font-size:24px;line-height:1.1}
+.badge{display:inline-flex;align-items:center;gap:6px;padding:4px 11px;border-radius:999px;font-weight:700;font-size:13px;width:fit-content;background:#fff}
+.tcard.ok{background:var(--ok-bg);border-color:var(--ok-line)}.tcard.ok .badge{color:var(--ok-ink)}
+.tcard.no{background:var(--no-bg);border-color:var(--no-line)}.tcard.no .badge{color:var(--no-ink)}
+.crew{display:flex;flex-direction:column;gap:6px}
+.crew span{display:flex;align-items:center;gap:8px;font-weight:500}
+.av{width:28px;height:28px;border-radius:50%;background:#fff;color:var(--brand);display:inline-grid;place-items:center;font-size:11px;font-weight:700;font-style:normal;flex:none}
+.tcard .next{margin-top:auto;font-size:13px;color:var(--muted)}
+.empty{background:var(--card);border-radius:var(--r);padding:22px;color:var(--muted);box-shadow:var(--shadow)}
+/* roster */
+.mhead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:4px 0 12px}
+.mhead h1{font-size:clamp(26px,5vw,40px)}
+.mnav{display:flex;gap:8px}
+.sheetwrap{overflow-x:auto;background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);border:1px solid var(--line);-webkit-overflow-scrolling:touch}
+.sheet{border-collapse:separate;border-spacing:0;width:100%;font-size:13px;font-variant-numeric:tabular-nums}
+.sheet th,.sheet td{padding:7px 4px;text-align:center;min-width:34px;border-bottom:1px solid var(--line)}
+.sheet .l{position:sticky;left:0;background:var(--card);text-align:left;padding:7px 12px;min-width:150px;white-space:nowrap;z-index:2;border-right:1px solid var(--line);font-weight:500}
+.sheet thead th{background:#faf6ef;color:var(--muted);font-weight:700}
+.sheet thead th.l{background:#faf6ef}
+.sheet th.tod{background:var(--accent);color:#fff}
+.sheet td.tod{box-shadow:inset 2px 0 0 var(--accent),inset -2px 0 0 var(--accent)}
+.sheet tr.sec td{background:#faf6ef;text-align:left;font-family:var(--head);font-weight:600;font-size:15px;padding:9px 12px;color:var(--brand);position:sticky;left:0}
+.sheet td.on{background:var(--soft);color:var(--brand);font-weight:700}
+.sheet td.hc{background:#fff}
+.sheet td.c0{background:var(--no-bg);color:var(--no-ink);font-weight:700}
+.sheet td.c1{background:var(--warn-bg);color:var(--warn-ink);font-weight:700}
+.sheet td.c2{background:var(--ok-bg);color:var(--ok-ink);font-weight:700}
+.legend{color:var(--muted);font-size:13px;margin:10px 4px 0}
+.people{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+.pcol{background:var(--card);border-radius:var(--r);padding:14px 16px;box-shadow:var(--shadow);border:1.5px solid transparent}
+.pcol.today{border-color:var(--ok-line)}
+.pcol h3{font-size:20px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.pill{font-family:var(--body);font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px;background:#f1ece2;color:var(--muted)}
+.pill.on{background:var(--ok-bg);color:var(--ok-ink)}
+.pcol ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.pcol li{display:flex;gap:9px;align-items:flex-start}
+.pcol li .av{background:var(--soft)}
+.pcol li small{display:block;color:var(--muted);font-size:12.5px;line-height:1.3}
+/* forms, buttons */
+input[type=text],input[type=password],input[type=date],input[type=search],select{width:100%;min-height:44px;padding:9px 12px;border:1.5px solid var(--line);border-radius:12px;background:#fff;color:var(--ink);font:inherit;font-size:16px}
+input:focus-visible,select:focus-visible,button:focus-visible,a:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.btn{min-height:44px;padding:9px 18px;border-radius:12px;border:1.5px solid var(--line);background:#fff;color:var(--ink);font:inherit;font-weight:700;cursor:pointer}
+.btn.pri{background:var(--brand);border-color:var(--brand);color:#fff}
+.btn.warn{color:var(--no-ink);border-color:var(--no-line);background:var(--no-bg)}
+.btn.sm{min-height:38px;padding:6px 14px;font-size:14px}
+.card{background:var(--card);border-radius:var(--r);padding:16px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:12px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stack{display:flex;flex-direction:column;gap:12px}
+.lbl{font-size:13px;font-weight:700;color:var(--muted);margin-bottom:4px;display:block}
+.hint{color:var(--muted);font-size:14px}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace;background:#fff;border-radius:8px;padding:2px 8px;color:var(--ink)}
+.segs{display:flex;gap:6px;overflow-x:auto;padding:2px 0 12px}
+.seg{flex:none;padding:9px 16px;border-radius:999px;border:1.5px solid var(--line);background:#fff;font:inherit;font-weight:700;color:var(--muted);cursor:pointer}
+.seg[aria-pressed=true]{background:var(--brand);border-color:var(--brand);color:#fff}
+.pcard{background:var(--card);border-radius:var(--r);padding:12px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:10px}
+.pc{display:grid;grid-template-columns:1fr 150px 84px 44px;gap:8px;align-items:center}
+@media(max-width:760px){.pc{grid-template-columns:1fr 1fr 44px}.pc .nm{grid-column:1/-1}.grid2{grid-template-columns:1fr}}
+.iconx{width:44px;height:44px;border-radius:12px;border:1.5px solid var(--no-line);background:var(--no-bg);color:var(--no-ink);font-size:18px;cursor:pointer}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{position:relative;display:inline-block}
+.chip input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}
+.chip span{display:inline-block;padding:7px 13px;border-radius:999px;border:1.5px solid var(--line);background:#fff;font-size:13.5px;font-weight:500;color:var(--muted)}
+.chip input:checked+span{background:var(--soft);border-color:var(--brand2);color:var(--brand);font-weight:700}
+.chip input:focus-visible+span{outline:3px solid var(--accent);outline-offset:2px}
+.tchip{display:inline-flex;align-items:center;gap:6px;padding:6px 6px 6px 13px;border-radius:999px;background:var(--soft);color:var(--brand);font-weight:700;font-size:14px}
+.tchip button{width:26px;height:26px;border-radius:50%;border:0;background:#fff;color:var(--no-ink);cursor:pointer;font-size:14px}
+.ucard{background:var(--card);border-radius:var(--r);padding:14px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:10px}
+.utop{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.utop .av{background:var(--soft);width:40px;height:40px;font-size:14px}
+.utop b{display:block}
+.role{font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px;background:var(--soft);color:var(--brand)}
+.role.sa{background:var(--accent-soft);color:var(--accent-ink)}
+.off{background:var(--no-bg);color:var(--no-ink)}
+.uact{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.uact select{width:auto;min-height:38px;font-size:14px}
+.reset{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:var(--accent-soft);border-radius:14px;padding:10px}
+.reset input{flex:1 1 160px;width:auto}
+/* sign in */
+.authwrap{min-height:100vh;display:grid;place-items:center;padding:20px;background:linear-gradient(160deg,#dcedf0,#fbf8f3 55%)}
+.authcard{width:min(420px,100%);background:#fff;border-radius:26px;padding:28px 24px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:14px}
+.authcard .brand{margin:0 0 4px}
+.err{color:var(--no-ink);min-height:20px;font-size:14px}
+#toast{position:fixed;left:50%;transform:translateX(-50%);top:calc(12px + env(safe-area-inset-top));z-index:60;width:min(520px,calc(100% - 24px));display:flex;flex-direction:column;gap:8px}
+.toast{background:var(--ink);color:#fff;border-radius:14px;padding:12px 16px;box-shadow:var(--shadow);font-weight:500}
+.toast.err{background:var(--no-ink)}.toast.ok{background:var(--ok-ink)}
+#bar{position:fixed;top:0;left:0;height:4px;width:0;background:var(--accent);z-index:70}
+@keyframes fill{from{width:0}to{width:100%}}
+#exitscreen{position:fixed;right:12px;top:calc(10px + env(safe-area-inset-top));z-index:60;opacity:.35}
+#exitscreen:hover,#exitscreen:focus{opacity:1}
+/* screen mode (wall display) */
+body.screen{font-size:clamp(16px,1.5vw,24px)}
+body.screen .page{max-width:none;padding:18px 24px}
+body.screen .clock{font-size:clamp(80px,13vw,190px)}
+body.screen .tcard h3{font-size:clamp(26px,2.6vw,42px)}
+body.screen .stat b{font-size:clamp(40px,5vw,76px)}
+body.screen .sheet{font-size:clamp(12px,1.05vw,18px)}
+</style>
+</head>
+<body>
+<div id="bar"></div>
+<div id="toast" aria-live="polite"></div>
+<button class="iconbtn" id="exitscreen" hidden title="Exit screen mode (Esc)"></button>
+<div id="auth" hidden></div>
+
+<div id="app" hidden>
+  <header class="top" id="top">
+    <div class="topin">
+      <div class="brand"><span class="logo" id="logo"></span><span id="brandname"></span></div>
+      <nav class="tabs" id="tabs"></nav>
+      <button class="iconbtn" id="screenbtn" title="Screen mode for a wall display"></button>
+    </div>
+  </header>
+
+  <main class="page">
+    <section id="v-today">
+      <div class="hero">
+        <div><div class="hello" id="hello"></div><div class="clock" id="clock"></div><div class="co" id="coname"></div></div>
+        <div class="datebox"><div class="dow" id="dow"></div><div class="dmy" id="dmy"></div></div>
+      </div>
+      <div class="stats" id="stats"></div>
+      <h2 class="h">Type ratings available today</h2>
+      <div class="types" id="grid"></div>
+    </section>
+
+    <section id="v-roster" hidden>
+      <div class="mhead"><h1 id="mtitle"></h1>
+        <div class="mnav"><button class="btn sm" id="mprev" aria-label="Previous month">&#8249;</button><button class="btn sm" id="mtoday">This month</button><button class="btn sm" id="mnext" aria-label="Next month">&#8250;</button></div></div>
+      <div class="sheetwrap" id="sheetwrap"><table class="sheet" id="sheet"></table></div>
+      <p class="legend">Blue = on duty (shift letter). Cover rows show how many rated engineers are on duty: red 0, amber 1, green 2 or more. Today's column is outlined in orange.</p>
+      <h2 class="h">Personnel</h2>
+      <div class="people" id="plist"></div>
+    </section>
+
+    <section id="v-admin" hidden>
+      <div class="segs" id="admtabs" role="group" aria-label="Admin sections"></div>
+      <div id="adm"></div>
+    </section>
+
+    <section id="v-account" hidden><div class="stack" id="acct" style="max-width:520px"></div></section>
+  </main>
+</div>
+
+<script>
+var APP_NAME="Roster Planner";   // the name shown at the top; change it here if you like
+var $=function(id){return document.getElementById(id);};
+var esc=function(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});};
+var OFFSET={A:0,B:2,C:4,D:6},SH=["A","B","C","D"],ROLES=["Engineer","Technician","Cleaner"],RANK={user:1,admin:2,superadmin:3};
+var ROLENAME={user:"User",admin:"Admin",superadmin:"SuperAdmin"};
+var ST=null,VIEW="today",ADMTAB="people",MOFF=0,SCREEN=false,SEARCH="",RESET=null,PENDING=false,AUTH="",BOOTED=false,rot=null;
+
+var P={clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',cal:'<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+shield:'<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/>',user:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+tv:'<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/>',x:'<path d="M6 6l12 12M18 6L6 18"/>',
+plane:'<path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/>'};
+function ico(n){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+P[n]+'</svg>';}
+
+/* ---------- talking to the server ---------- */
+async function api(a,data){
+  var r=await fetch("api.php",{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json","X-Requested-With":"fetch"},body:JSON.stringify(Object.assign({a:a},data||{}))});
+  var j;try{j=await r.json();}catch(e){j={error:"The server sent an unexpected reply. Please check that PHP is running on your hosting."};}
+  if(!r.ok||j.error){var er=new Error(j.error||"Something went wrong.");er.status=r.status;throw er;}
+  return j;
+}
+function toast(html,type,ms){
+  [].forEach.call($("toast").children,function(c){if(c.innerHTML===html)c.remove();});
+  var el=document.createElement("div");el.className="toast "+(type||"");el.innerHTML=html;el.onclick=function(){el.remove();};
+  $("toast").appendChild(el);setTimeout(function(){el.remove();},ms||3500);
+}
+// keep = true: our own edit; the list on screen is already right, so do not redraw it (keeps your cursor in place)
+async function act(a,data,opt){
+  opt=opt||{};
+  try{
+    var j=await api(a,data);
+    if(j.signedOut){ST=null;showLogin();return j;}
+    if(j.state){setState(j.state,opt.keep);if(!opt.keep&&VIEW==="admin")renderAdmin(true);}
+    if(opt.ok)toast(esc(opt.ok),"ok");
+    return j;
+  }catch(e){
+    if(e.status===401){ST=null;showLogin("Please sign in again.");return null;}
+    toast(esc(e.message),"err",6000);
+    if(ST)renderAll();
+    return null;
+  }
+}
+
+/* ---------- live updates: ask the server every few seconds whether anything changed ---------- */
+async function poll(){
+  if(document.hidden)return;
+  try{
+    var r=await fetch("api.php?a=state&v="+(ST?ST.v:0),{credentials:"same-origin",cache:"no-store"});
+    var j=await r.json();
+    if(j.error&&!j.needsSetup&&!j.signedOut){if(!ST&&!AUTH)authMsg(j.error);return;}
+    if(j.needsSetup){if(AUTH!=="setup")showSetup();return;}
+    if(j.signedOut){ST=null;if(AUTH!=="login")showLogin();return;}
+    if(j.state)setState(j.state);
+  }catch(e){if(!ST&&!AUTH)authMsg("Cannot reach the server. Check your connection and that api.php is uploaded.");}
+}
+setInterval(poll,5000);
+document.addEventListener("visibilitychange",function(){if(!document.hidden)poll();});
+
+/* ---------- roster maths ---------- */
+function dayIndex(d){var a=ST.anchor.split("-").map(Number);return Math.round((Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())-Date.UTC(a[0],a[1]-1,a[2]))/864e5);}
+function onDuty(sh,d){var n=(dayIndex(d)-OFFSET[sh])%8;if(n<0)n+=8;return n<4;}
+function dutyPeople(d){return ST.people.filter(function(p){return onDuty(p.shift,d);});}
+function counts(d){var c={Engineer:0,Technician:0,Cleaner:0};dutyPeople(d).forEach(function(p){c[p.role]++;});return c;}
+function crew(t,d){return ST.people.filter(function(p){return p.role==="Engineer"&&(p.ratings||[]).indexOf(t)>=0&&onDuty(p.shift,d);});}
+function ini(n){var p=String(n).trim().split(/\s+/);return ((p[0]||"").charAt(0)+(p.length>1?p[p.length-1].charAt(0):"")).toUpperCase();}
+function byName(a,b){return a.name.localeCompare(b.name);}
+
+/* ---------- Today ---------- */
+function renderToday(){
+  var now=new Date(),tm=new Date(now.getFullYear(),now.getMonth(),now.getDate()+1),c=counts(now);
+  $("coname").textContent=ST.company;
+  $("dow").textContent=now.toLocaleDateString("en-GB",{weekday:"long"});
+  $("dmy").textContent=now.toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"});
+  $("stats").innerHTML=[["main",dutyPeople(now).length,"on shift today"],["",c.Engineer,"type-rated engineers"],["",c.Technician,"technicians"],["",c.Cleaner,"cleaners"]]
+    .map(function(x){return '<div class="stat '+x[0]+'"><b>'+x[1]+'</b><span>'+x[2]+'</span></div>';}).join("");
+  $("grid").innerHTML=!ST.types.length?'<div class="empty">No type ratings yet. An Admin can add them under Admin &rsaquo; Settings.</div>':ST.types.map(function(t){
+    var a=crew(t,now),n=crew(t,tm),ok=a.length>0;
+    return '<article class="tcard '+(ok?"ok":"no")+'"><h3>'+esc(t)+'</h3><span class="badge">'+(ok?"&#10003; Available":"No cover today")+'</span>'+
+      (ok?'<div class="crew">'+a.map(function(p){return '<span><i class="av">'+esc(ini(p.name))+'</i>'+esc(p.name)+'</span>';}).join("")+'</div>':'<div class="hint">No rated engineer on duty</div>')+
+      '<div class="next">Tomorrow: '+(n.length?esc(n.map(function(p){return p.name;}).join(", ")):"no cover")+'</div></article>';}).join("");
+}
+function greet(){var h=new Date().getHours(),g=h<12?"Good morning":h<18?"Good afternoon":"Good evening";return SCREEN||!ST?"":g+", "+esc(ST.me.name.split(" ")[0]);}
+function tick(){
+  var n=new Date(),p=function(x){return String(x).padStart(2,"0");};
+  $("clock").innerHTML=p(n.getHours())+":"+p(n.getMinutes())+"<small>:"+p(n.getSeconds())+"</small>";
+  if(ST){$("hello").innerHTML=greet();var key=n.toDateString();if(tick.day!==key){tick.day=key;renderToday();renderMonth();}}
+}
+setInterval(tick,1000);
+
+/* ---------- Roster ---------- */
+function renderMonth(){
+  var base=new Date();base=new Date(base.getFullYear(),base.getMonth()+MOFF,1);
+  var y=base.getFullYear(),m=base.getMonth(),n=new Date(y,m+1,0).getDate(),now=new Date(),td=(MOFF===0)?now.getDate():-1,
+      W=["Su","Mo","Tu","We","Th","Fr","Sa"],days=[],d;
+  for(d=1;d<=n;d++)days.push(new Date(y,m,d));
+  var t=function(i){return i+1===td?" tod":"";};
+  var row=function(l,fn){return '<tr><td class="l">'+l+'</td>'+days.map(fn).join("")+'</tr>';};
+  var sec=function(l){return '<tr class="sec"><td colspan="'+(n+1)+'">'+l+'</td></tr>';};
+  var h='<thead><tr><th class="l" rowspan="2">Day</th>'+days.map(function(x,i){return '<th class="'+t(i).trim()+'">'+(i+1)+'</th>';}).join("")+'</tr><tr>'+
+    days.map(function(x,i){return '<th class="'+t(i).trim()+'">'+W[x.getDay()]+'</th>';}).join("")+'</tr></thead><tbody>';
+  h+=sec("Shifts on duty")+SH.map(function(s){return row("Shift "+s,function(x,i){var on=onDuty(s,x);return '<td class="'+(on?"on":"")+t(i)+'">'+(on?s:"")+'</td>';});}).join("");
+  h+=sec("Headcount on duty")+row("<b>Total</b>",function(x,i){return '<td class="hc'+t(i)+'"><b>'+dutyPeople(x).length+'</b></td>';})+
+    [["Engineer","Type-rated engineers"],["Technician","Technicians"],["Cleaner","Cleaners"]].map(function(k){return row(k[1],function(x,i){return '<td class="hc'+t(i)+'">'+counts(x)[k[0]]+'</td>';});}).join("");
+  if(ST.types.length)h+=sec("Cover by type rating")+ST.types.map(function(ty){return row(esc(ty),function(x,i){var k=crew(ty,x).length;return '<td class="c'+Math.min(k,2)+t(i)+'">'+k+'</td>';});}).join("");
+  $("sheet").innerHTML=h+'</tbody>';
+  $("mtitle").textContent=base.toLocaleDateString("en-GB",{month:"long",year:"numeric"});
+  var rank={Engineer:0,Technician:1,Cleaner:2},today=new Date();
+  $("plist").innerHTML=!ST.people.length?'<div class="empty">No personnel yet. An Admin can add people under Admin &rsaquo; People.</div>':SH.map(function(s){
+    var ps=ST.people.filter(function(p){return p.shift===s;}).sort(function(a,b){return (rank[a.role]-rank[b.role])||byName(a,b);}),on=onDuty(s,today);
+    return '<div class="pcol'+(on?" today":"")+'"><h3>Shift '+s+'<span class="pill'+(on?" on":"")+'">'+(on?"on duty today":"off today")+'</span></h3><ul>'+
+      ps.map(function(p){var r=(p.ratings||[]).length?'<small>'+esc(p.ratings.join(" · "))+'</small>':"";
+        return '<li><i class="av">'+esc(ini(p.name))+'</i><div>'+esc(p.name)+'<small>'+p.role+'</small>'+r+'</div></li>';}).join("")+'</ul></div>';}).join("");
+}
+function scrollSheet(){var w=$("sheetwrap"),c=$("sheet").querySelector("th.tod");w.scrollLeft=c?Math.max(0,c.offsetLeft-170):0;}
+$("mprev").onclick=function(){MOFF--;renderMonth();scrollSheet();};
+$("mnext").onclick=function(){MOFF++;renderMonth();scrollSheet();};
+$("mtoday").onclick=function(){MOFF=0;renderMonth();scrollSheet();};
+
+/* ---------- Admin ---------- */
+var ADM_TABS=[["people","People"],["accounts","Accounts"],["settings","Settings"],["backups","Backups"]];
+function opts(list,v){return list.map(function(x){return '<option'+(x===v?" selected":"")+'>'+esc(x)+'</option>';}).join("");}
+function renderAdmin(force){
+  if(!ST||RANK[ST.me.role]<2)return;
+  var el=$("adm");
+  if(!force&&el.contains(document.activeElement)&&/INPUT|SELECT/.test(document.activeElement.tagName)){PENDING=true;return;}
+  PENDING=false;
+  if(ADMTAB==="backups"&&ST.me.role!=="superadmin")ADMTAB="people";
+  var tabs=ADM_TABS.filter(function(x){return x[0]!=="backups"||ST.me.role==="superadmin";});
+  $("admtabs").innerHTML=tabs.map(function(x){return '<button class="seg" data-tab="'+x[0]+'" aria-pressed="'+(ADMTAB===x[0])+'">'+x[1]+'</button>';}).join("");
+  el.innerHTML=ADMTAB==="people"?adminPeople():ADMTAB==="accounts"?adminAccounts():ADMTAB==="settings"?adminSettings():adminBackups();
+  if(ADMTAB==="people")renderPeopleList();
+}
+function adminPeople(){
+  return '<form class="card" id="f-addperson"><h3>Add a person</h3><div class="grid2"><input type="text" id="ap_name" placeholder="Full name" autocomplete="off" required><div class="grid2"><select id="ap_role" aria-label="Role">'+opts(ROLES)+'</select><select id="ap_shift" aria-label="Shift">'+SH.map(function(s){return '<option value="'+s+'">Shift '+s+'</option>';}).join("")+'</select></div></div><button class="btn pri">Add person</button></form>'+
+    '<div style="margin:14px 0 10px"><input type="search" id="psearch" placeholder="Search people" value="'+esc(SEARCH)+'"></div><div class="stack" id="pl"></div>';
+}
+function renderPeopleList(){
+  var q=SEARCH.toLowerCase(),list=ST.people.filter(function(p){return !q||p.name.toLowerCase().indexOf(q)>=0;}).sort(byName);
+  $("pl").innerHTML=list.length?list.map(function(p){
+    var chips=p.role==="Engineer"?(ST.types.length?'<div class="chips">'+ST.types.map(function(t){return '<label class="chip"><input type="checkbox" class="ckb" data-t="'+esc(t)+'"'+((p.ratings||[]).indexOf(t)>=0?" checked":"")+'><span>'+esc(t)+'</span></label>';}).join("")+'</div>':'<div class="hint">Add type ratings under Settings to tick them here.</div>'):'';
+    return '<div class="pcard" data-id="'+esc(p.id)+'"><div class="pc"><input type="text" class="nm" value="'+esc(p.name)+'" aria-label="Name"><select class="rl" aria-label="Role">'+opts(ROLES,p.role)+'</select><select class="sh" aria-label="Shift">'+SH.map(function(s){return '<option'+(s===p.shift?" selected":"")+'>'+s+'</option>';}).join("")+'</select><button class="iconx" data-act="pdel" aria-label="Remove '+esc(p.name)+'">&times;</button></div>'+chips+'</div>';}).join(""):'<div class="empty">No one found.</div>';
+}
+function adminAccounts(){
+  var me=ST.me,allowed=me.role==="superadmin"?["admin","user"]:["user"];
+  var users=ST.users.slice().sort(function(a,b){return (RANK[b.role]-RANK[a.role])||a.username.localeCompare(b.username);});
+  return '<form class="card" id="f-adduser"><h3>Add an account</h3><p class="hint">The username can be the person\'s work email. You choose their first password and tell them; they can change it on their Account page.</p>'+
+    '<div class="grid2"><input type="text" id="nu_user" placeholder="Username or work email" autocomplete="off" autocapitalize="none" required><input type="text" id="nu_name" placeholder="Full name" autocomplete="off"></div>'+
+    '<div class="grid2"><select id="nu_role" aria-label="Access">'+allowed.map(function(r){return '<option value="'+r+'">'+ROLENAME[r]+(r==="user"?" (view only)":" (can edit)")+'</option>';}).join("")+'</select>'+
+    '<div class="row" style="flex-wrap:nowrap"><input type="text" id="nu_pass" placeholder="Password (8+ characters)" autocomplete="off" required><button type="button" class="btn" data-act="gen" data-target="nu_pass">Generate</button></div></div>'+
+    '<button class="btn pri">Create account</button></form><h2 class="h">Accounts ('+users.length+')</h2><div class="stack">'+
+    users.map(function(u){
+      var manage=u.id!==me.id&&RANK[u.role]<RANK[me.role];
+      var acts=manage?'<select class="urole" data-id="'+esc(u.id)+'" aria-label="Access">'+allowed.map(function(r){return '<option value="'+r+'"'+(r===u.role?" selected":"")+'>'+ROLENAME[r]+'</option>';}).join("")+'</select>'+
+        '<button class="btn sm" data-act="ropen" data-id="'+esc(u.id)+'">Reset password</button><button class="btn sm '+(u.active?"warn":"")+'" data-act="utoggle" data-id="'+esc(u.id)+'" data-a="'+(u.active?0:1)+'">'+(u.active?"Disable":"Enable")+'</button><button class="btn sm warn" data-act="udel" data-id="'+esc(u.id)+'">Remove</button>':'<span class="hint">'+(u.id===me.id?"This is you":"Managed by a higher level")+'</span>';
+      var panel=RESET===u.id?'<div class="reset"><input type="text" id="rp_pass" placeholder="New password (8+ characters)" autocomplete="off"><button class="btn sm" data-act="gen" data-target="rp_pass">Generate</button><button class="btn sm pri" data-act="rsave" data-id="'+esc(u.id)+'">Set password</button><button class="btn sm" data-act="rcancel">Cancel</button></div>':'';
+      return '<div class="ucard"><div class="utop"><i class="av">'+esc(ini(u.name))+'</i><div style="margin-right:auto"><b>'+esc(u.username)+'</b><span class="hint">'+esc(u.name)+(u.last_login?" · last in "+esc(u.last_login):" · never signed in")+'</span></div><span class="role '+(u.role==="superadmin"?"sa":"")+'">'+ROLENAME[u.role]+'</span>'+(u.active?"":'<span class="role off">Disabled</span>')+'</div><div class="uact">'+acts+'</div>'+panel+'</div>';}).join("")+'</div>';
+}
+function adminSettings(){
+  return '<div class="card"><h3>Company and rotation</h3><div><label class="lbl" for="set_company">Company name</label><input type="text" id="set_company" value="'+esc(ST.company)+'"></div>'+
+    '<div><label class="lbl" for="set_anchor">Shift A first day on duty</label><input type="date" id="set_anchor" value="'+esc(ST.anchor)+'"><p class="hint">Shifts B, C and D start 2, 4 and 6 days later. Everyone works 4 days on, 4 days off.</p></div></div>'+
+    '<form class="card" id="f-addtype" style="margin-top:14px"><h3>Type ratings</h3><div class="row">'+(ST.types.length?ST.types.map(function(t){return '<span class="tchip">'+esc(t)+'<button type="button" data-act="tdel" data-t="'+esc(t)+'" aria-label="Remove '+esc(t)+'">&times;</button></span>';}).join(""):'<span class="hint">None yet.</span>')+'</div>'+
+    '<div class="row" style="flex-wrap:nowrap"><input type="text" id="nt" placeholder="New type rating, e.g. Falcon 2000" autocomplete="off"><button class="btn pri">Add</button></div></form>';
+}
+function adminBackups(){
+  var last=ST.last_backup?new Date(ST.last_backup*1000).toLocaleString("en-GB"):"never";
+  var every=ST.backup_days===30?"every month":ST.backup_days===7?"every week":"every "+ST.backup_days+" days";
+  return '<div class="card"><h3>Backups</h3><p class="hint">A backup is made automatically '+every+', the first time anyone uses the site after that time. The last one was: <b>'+esc(last)+'</b>. The newest copies are kept on the server. Download one now and then and keep it somewhere safe, because a copy that lives only on the server would be lost if the server failed. Downloaded backups include accounts, so keep them private.</p>'+
+    '<div class="row"><button class="btn pri" data-act="bnow">Back up now</button><label class="btn" style="cursor:pointer">Restore from a downloaded file<input type="file" id="bfile" accept=".json,application/json" hidden></label></div></div>'+
+    '<div class="stack" style="margin-top:14px">'+(ST.backups.length?ST.backups.map(function(b){return '<div class="ucard"><div class="utop"><div style="margin-right:auto"><b>'+esc(b.time)+'</b><span class="hint">'+Math.max(1,Math.round(b.size/1024))+' KB</span></div><button class="btn sm" data-act="bdl" data-n="'+esc(b.name)+'">Download</button><button class="btn sm warn" data-act="brest" data-n="'+esc(b.name)+'">Restore</button></div></div>';}).join(""):'<div class="empty">No backups yet.</div>')+'</div>';
+}
+function gen(){var a="abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789",b=new Uint32Array(10);crypto.getRandomValues(b);return Array.from(b).map(function(x){return a[x%a.length];}).join("");}
+function showCreds(u,p){toast('Password set for <b>'+esc(u)+'</b>:<br><span class="mono">'+esc(p)+'</span><br><small>Tell them privately. Tap to close.</small>',"ok",40000);}
+
+$("admtabs").addEventListener("click",function(e){var b=e.target.closest("[data-tab]");if(b){ADMTAB=b.dataset.tab;RESET=null;renderAdmin(true);}});
+$("adm").addEventListener("input",function(e){if(e.target.id==="psearch"){SEARCH=e.target.value;renderPeopleList();}});
+$("adm").addEventListener("change",function(e){
+  var t=e.target,card=t.closest(".pcard");
+  if(card){
+    var name=card.querySelector(".nm").value.trim(),role=card.querySelector(".rl").value;
+    if(!name){toast("A name cannot be empty.","err");renderAdmin(true);return;}
+    act("person_save",{id:card.dataset.id,name:name,role:role,shift:card.querySelector(".sh").value,
+      ratings:[].map.call(card.querySelectorAll(".ckb:checked"),function(x){return x.dataset.t;})},{keep:!t.classList.contains("rl"),ok:"Saved"});
+  }else if(t.id==="set_company"||t.id==="set_anchor"){
+    act("settings_save",{company:$("set_company").value,anchor:$("set_anchor").value},{keep:true,ok:"Saved"});
+  }else if(t.classList.contains("urole")){act("user_update",{id:t.dataset.id,role:t.value},{ok:"Access updated"});}
+  else if(t.id==="bfile"&&t.files[0]){
+    var f=t.files[0],rd=new FileReader();
+    rd.onload=function(){var data;try{data=JSON.parse(rd.result);}catch(x){toast("That file is not a backup.","err");return;}
+      if(confirm("Replace ALL current data with this backup? A safety copy of the current data is made first."))act("restore",{data:data},{ok:"Backup restored"});};
+    rd.readAsText(f);
+  }
+});
+$("adm").addEventListener("focusout",function(){setTimeout(function(){if(PENDING&&!$("adm").contains(document.activeElement))renderAdmin(true);},150);});
+$("adm").addEventListener("submit",async function(e){
+  e.preventDefault();var id=e.target.id;
+  if(id==="f-addperson"){var j=await act("person_save",{name:$("ap_name").value,role:$("ap_role").value,shift:$("ap_shift").value,ratings:[]},{ok:"Person added"});if(j){var i=$("ap_name");if(i){i.value="";i.focus();}}}
+  else if(id==="f-adduser"){var u=$("nu_user").value.trim(),p=$("nu_pass").value;
+    var r=await act("user_save",{username:u,name:$("nu_name").value,role:$("nu_role").value,password:p});if(r)showCreds(u,p);}
+  else if(id==="f-addtype"){var v=$("nt").value.trim();if(v&&ST.types.indexOf(v)<0)act("types_save",{types:ST.types.concat([v])},{ok:"Type rating added"});}
+});
+$("adm").addEventListener("click",async function(e){
+  var b=e.target.closest("button[data-act]");if(!b)return;var k=b.dataset.act,id=b.dataset.id;
+  if(k==="pdel"){var card=b.closest(".pcard");if(confirm("Remove "+card.querySelector(".nm").value+" from the roster?"))act("person_delete",{id:card.dataset.id},{ok:"Removed"});}
+  else if(k==="gen"){$(b.dataset.target).value=gen();}
+  else if(k==="ropen"){RESET=id;renderAdmin(true);var f=$("rp_pass");if(f)f.focus();}
+  else if(k==="rcancel"){RESET=null;renderAdmin(true);}
+  else if(k==="rsave"){var pw=$("rp_pass").value,un=ST.users.filter(function(x){return x.id===id;})[0].username;
+    var r=await act("user_reset",{id:id,password:pw});if(r){RESET=null;renderAdmin(true);showCreds(un,pw);}}
+  else if(k==="utoggle"){act("user_update",{id:id,active:b.dataset.a==="1"},{ok:b.dataset.a==="1"?"Account enabled":"Account disabled"});}
+  else if(k==="udel"){var u=ST.users.filter(function(x){return x.id===id;})[0];if(confirm("Remove the account "+u.username+"? This cannot be undone."))act("user_delete",{id:id},{ok:"Account removed"});}
+  else if(k==="tdel"){if(confirm("Remove the type rating \""+b.dataset.t+"\"? It will also be unticked from every engineer."))act("types_save",{types:ST.types.filter(function(x){return x!==b.dataset.t;})},{ok:"Removed"});}
+  else if(k==="bnow"){act("backup_now",{},{ok:"Backup created"});}
+  else if(k==="bdl"){window.location="api.php?download="+encodeURIComponent(b.dataset.n);}
+  else if(k==="brest"){if(confirm("Replace ALL current data with this backup? A safety copy of the current data is made first."))act("restore",{name:b.dataset.n},{ok:"Backup restored"});}
+});
+
+/* ---------- Account ---------- */
+function renderAccount(){
+  var m=ST.me;
+  $("acct").innerHTML='<div class="card"><div class="utop"><i class="av">'+esc(ini(m.name))+'</i><div style="margin-right:auto"><b>'+esc(m.name)+'</b><span class="hint">'+esc(m.username)+'</span></div><span class="role '+(m.role==="superadmin"?"sa":"")+'">'+ROLENAME[m.role]+'</span></div></div>'+
+   '<form class="card" id="f-pw"><h3>Change my password</h3><input type="password" id="pw0" placeholder="Current password" autocomplete="current-password" required><input type="password" id="pw1" placeholder="New password (8+ characters)" autocomplete="new-password" required><button class="btn pri">Change password</button><p class="hint">Forgot your password? Ask your Admin to reset it for you.</p></form>'+
+   '<div class="card"><h3>Wall display</h3><p class="hint">Screen mode hides the menus, uses bigger type and flips between Today and Roster every 10 seconds. Press Esc to leave it. Tip: bookmark this site with #screen on the end to open straight into it.</p><button class="btn" id="screen2">Start screen mode</button></div>'+
+   '<button class="btn warn" id="signout">Sign out</button>';
+  $("screen2").onclick=screenOn;
+  $("signout").onclick=async function(){try{await api("logout");}catch(e){}ST=null;BOOTED=false;screenOff();showLogin();};
+  $("f-pw").onsubmit=async function(e){e.preventDefault();var j=await act("me_password",{current:$("pw0").value,password:$("pw1").value},{keep:true,ok:"Password changed"});if(j){$("pw0").value="";$("pw1").value="";}};
+}
+
+/* ---------- navigation, screen mode ---------- */
+function buildNav(){
+  var t=[["today","Today","clock"],["roster","Roster","cal"]];
+  if(RANK[ST.me.role]>=2)t.push(["admin","Admin","shield"]);
+  t.push(["account","Account","user"]);
+  $("tabs").innerHTML=t.map(function(x){return '<a href="#'+x[0]+'" class="tab" data-v="'+x[0]+'"'+(VIEW===x[0]?' aria-current="page"':"")+'>'+ico(x[2])+'<span>'+x[1]+'</span></a>';}).join("");
+}
+$("tabs").addEventListener("click",function(e){var a=e.target.closest("a[data-v]");if(a){e.preventDefault();SCREEN&&screenOff();show(a.dataset.v);}});
+function show(v){
+  if(v==="admin"&&RANK[ST.me.role]<2)v="today";
+  VIEW=v;["today","roster","admin","account"].forEach(function(k){$("v-"+k).hidden=k!==v;});
+  document.querySelectorAll(".tab").forEach(function(a){if(a.dataset.v===v)a.setAttribute("aria-current","page");else a.removeAttribute("aria-current");});
+  if(v==="roster"){renderMonth();scrollSheet();}
+  if(v==="admin")renderAdmin(true);
+  if(v==="account")renderAccount();
+  window.scrollTo(0,0);
+  try{history.replaceState(null,"","#"+(SCREEN?"screen":v));}catch(e){}
+}
+function screenOn(){SCREEN=true;MOFF=0;document.body.classList.add("screen");$("top").hidden=true;$("exitscreen").hidden=false;show("today");startRot();}
+function screenOff(){if(!SCREEN)return;SCREEN=false;document.body.classList.remove("screen");$("top").hidden=false;$("exitscreen").hidden=true;stopRot();}
+function startRot(){stopRot();var b=$("bar");b.style.animation="fill 10s linear infinite";rot=setInterval(function(){show(VIEW==="today"?"roster":"today");},10000);}
+function stopRot(){clearInterval(rot);var b=$("bar");b.style.animation="none";b.style.width="0";}
+$("screenbtn").onclick=screenOn;$("exitscreen").onclick=screenOff;
+document.addEventListener("keydown",function(e){if(e.key==="Escape")screenOff();});
+
+/* ---------- state and screens ---------- */
+function renderAll(keepAdmin){
+  if(!ST)return;
+  buildNav();renderToday();renderMonth();
+  if(VIEW==="account"&&!$("acct").contains(document.activeElement))renderAccount();
+  if(VIEW==="admin"&&!keepAdmin)renderAdmin();
+  else if(RANK[ST.me.role]<2&&VIEW==="admin")show("today");
+}
+function setState(s,keepAdmin){
+  var first=!ST;ST=s;
+  if(AUTH){AUTH="";$("auth").hidden=true;}
+  $("app").hidden=false;$("top").hidden=SCREEN;
+  renderAll(keepAdmin);
+  if(!BOOTED){BOOTED=true;var h=location.hash.slice(1);if(h==="screen")screenOn();else show(["today","roster","admin","account"].indexOf(h)>=0?h:"today");}
+  tick.day=null;tick();
+}
+function authShell(html){AUTH=html.indexOf("f-setup")>=0?"setup":"login";$("app").hidden=true;$("auth").hidden=false;
+  $("auth").innerHTML='<div class="authwrap"><div class="authcard"><div class="brand"><span class="logo">'+ico("plane")+'</span><span>'+esc(APP_NAME)+'</span></div>'+html+'</div></div>';}
+function authMsg(t){var m=$("amsg");if(m)m.textContent=t;else{authShell('<div class="err" id="amsg">'+esc(t)+'</div>');AUTH="";}}
+function showLogin(msg){authShell('<form class="stack" id="f-login"><h2>Welcome back</h2><div><label class="lbl" for="lu">Username</label><input type="text" id="lu" autocomplete="username" autocapitalize="none" autocorrect="off" required></div><div><label class="lbl" for="lp">Password</label><input type="password" id="lp" autocomplete="current-password" required></div><button class="btn pri">Sign in</button><div class="err" id="amsg">'+esc(msg||"")+'</div><p class="hint">Forgot your username or password? Ask your Admin to look it up or reset it for you.</p></form>');}
+function showSetup(){authShell('<form class="stack" id="f-setup"><h2>Set up your site</h2><p class="hint">Create the SuperAdmin account. You will need the setup code from inside api.php.</p><div><label class="lbl" for="sc">Setup code</label><input type="password" id="sc" autocomplete="off" required></div><div><label class="lbl" for="sco">Company name</label><input type="text" id="sco" required></div><div><label class="lbl" for="su">Your username</label><input type="text" id="su" autocomplete="username" autocapitalize="none" required></div><div><label class="lbl" for="sn">Your name</label><input type="text" id="sn" autocomplete="name"></div><div><label class="lbl" for="sp">Password (8+ characters)</label><input type="password" id="sp" autocomplete="new-password" required></div><label class="row hint"><input type="checkbox" id="ss"> Fill with a sample team (for a demo)</label><button class="btn pri">Create site</button><div class="err" id="amsg"></div></form>');}
+$("auth").addEventListener("submit",async function(e){
+  e.preventDefault();var m=$("amsg");m.textContent="";
+  try{
+    var j=e.target.id==="f-login"?await api("login",{username:$("lu").value,password:$("lp").value})
+      :await api("setup",{setup_code:$("sc").value,company:$("sco").value,username:$("su").value,name:$("sn").value,password:$("sp").value,sample:$("ss").checked});
+    BOOTED=false;if(j.state)setState(j.state);
+  }catch(err){m.textContent=err.message;}
+});
+
+/* ---------- start ---------- */
+$("logo").innerHTML=ico("plane");$("brandname").textContent=APP_NAME;$("screenbtn").innerHTML=ico("tv");$("exitscreen").innerHTML=ico("x");
+document.title=APP_NAME;
+tick();poll();
+</script>
+</body>
+</html>
