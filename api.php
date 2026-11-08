@@ -1,7 +1,7 @@
 <?php
 // ======================= SETTINGS - edit these =======================
 $CONFIG = [
-    'setup_code'        => 'CHANGE-THIS-CODE', // you type this once, the first time you open the site
+    'setup_code'        => '1234', // you type this once, the first time you open the site
     'timezone'          => 'Asia/Dubai',
     'backup_every_days' => 30,                 // 30 = monthly, 7 = weekly
     'backup_keep'       => 12,                 // how many backups to keep on the server
